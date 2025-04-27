@@ -1,10 +1,12 @@
 # Overview
 
-{Important!  Do not say in this section that this is college assignment.  Talk about what you are trying to accomplish as a software engineer to further your learning.}
+This is a basic Hello World made in Angular.
 
-{Provide a description of your software}
+# Introduction
 
-{Describe your purpose for creating this software.}
+It contains the basic components for working a simple website. 
+
+I chose this proyect because I needed to remember how start a website using Angular. 
 
 {Provide a link to your YouTube demonstration.  It should be a one minute demo of the software running and a walkthrough of the code.}
 
@@ -12,12 +14,12 @@
 
 # Development Environment
 
-{Describe the tools that you used to develop the software}
+I used Visual Studio Code for developing and GitHub for hosting the project.
 
-{Describe the programming language that you used}
+Angular is a framework for creating website very simple and easy to use and improve through the time.
 
 # Useful Websites
 
-{Make a list of websites that you found helpful in this project}
-* [Web Site Name](http://url.link.goes.here)
-* [Web Site Name](http://url.link.goes.here)
+* [Angular](https://angular.dev/)
+* [BootStrap](https://getbootstrap.com/)
+* [GitHub](https://github.com/) 
