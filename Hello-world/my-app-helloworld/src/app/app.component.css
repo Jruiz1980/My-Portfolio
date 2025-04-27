@@ -1,0 +1,47 @@
+.parallax-container {
+    min-height: 100vh;
+    overflow-y: auto;
+    perspective: 300px; /* Ajusta este valor para la intensidad del paralaje */
+  }
+  
+  .parallax-background {
+  position: absolute; /* Permite posicionar las imágenes con top y left dentro de .parallax-content */
+  background-image: url('../assets/hello.jpg'); /* Reemplaza con tu imagen pequeña para el mosaico */
+  background-size: contain; /* Asegura que la imagen completa sea visible */
+  background-repeat: no-repeat; /* Evita la repetición automática aquí */
+  width: 500px; /* Ajusta el tamaño de cada "mosaico" */
+  height: 500px; /* Ajusta el tamaño de cada "mosaico" */
+  opacity: 0; /* Inicialmente ocultas */
+  } 
+  
+  .parallax-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: white;
+    text-align: center;
+  }
+  
+  .jumbotron {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    border-radius: 0.3rem;
+  }
+
+/*.bouncing-image {
+  position: absolute; /* Permite posicionar las imágenes con top y left dentro de .parallax-content 
+  background-image: url('../assets/hello.jpg'); /* Reemplaza con tu imagen pequeña para el mosaico 
+  background-size: contain; /* Asegura que la imagen completa sea visible
+  background-repeat: no-repeat; /* Evita la repetición automática aquí 
+  width: 50px; /* Ajusta el tamaño de cada "mosaico" 
+  height: 50px; /* Ajusta el tamaño de cada "mosaico" 
+  opacity: 0; /* Inicialmente ocultas 
+}*/
+
+  @keyframes scrollBackground {
+    0% { background-position: 0 0; }
+    100% { background-position: 100% 0; }
+  }
