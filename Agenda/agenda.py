@@ -1,7 +1,4 @@
 import os
-# Ya no necesitamos queue, ya que Firestore será nuestra "cola" persistente
-# import queue # <--- Ya no es necesario
-
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
@@ -12,10 +9,8 @@ import datetime # Para manejar timestamps
 
 PATH_TO_FIREBASE_KEY = './config/agenda-6ad6b-firebase-adminsdk-fbsvc-0ae3e78192.json' # <--- ¡ACTUALIZA ESTO!
 
-# ID de tu proyecto (lo tienes como 'agenda-6ad6b')
 PROJECT_ID = 'agenda-6ad6b'
 
-# Nombre de la colección en Firestore donde guardaremos los eventos
 COLLECTION_NAME = 'agenda_events'
 
 # --- Inicializar Firebase Admin SDK ---
