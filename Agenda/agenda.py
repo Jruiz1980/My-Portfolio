@@ -10,11 +10,6 @@ from google.cloud.firestore_v1.base_query import FieldFilter # Mantén este si l
 # from google.cloud.firestore_v1.base_query import Order # <--- ¡QUITAMOS ESTO!
 import datetime # Para manejar timestamps
 
-# --- Configuración de Firebase ---
-# Asegúrate de que este archivo exista y esté en un lugar seguro.
-# Reemplaza 'ruta/a/tu/archivo-clave-servicio.json' con la ruta correcta a tu archivo JSON.
-# Puedes ponerlo en la misma carpeta que tu script para simplificar al inicio.
-# Ejemplo: 'serviceAccountKey.json' si lo descargaste y pusiste ahí.
 PATH_TO_FIREBASE_KEY = './config/agenda-6ad6b-firebase-adminsdk-fbsvc-0ae3e78192.json' # <--- ¡ACTUALIZA ESTO!
 
 # ID de tu proyecto (lo tienes como 'agenda-6ad6b')
