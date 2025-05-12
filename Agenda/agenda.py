@@ -2,47 +2,47 @@ import os
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-# Importamos solo FieldFilter, ya que usaremos strings para la dirección de orden
-from google.cloud.firestore_v1.base_query import FieldFilter # Mantén este si lo necesitas para where
-# from google.cloud.firestore_v1.base_query import Order # <--- ¡QUITAMOS ESTO!
-import datetime # Para manejar timestamps
+# We import only FieldFilter, as we will use strings for the order direction
+from google.cloud.firestore_v1.base_query import FieldFilter # Keep this if you need it for where
+# from google.cloud.firestore_v1.base_query import Order # <--- WE REMOVE THIS!
+import datetime # To handle timestamps
 
-PATH_TO_FIREBASE_KEY = './config/agenda-6ad6b-firebase-adminsdk-fbsvc-0ae3e78192.json' # <--- ¡ACTUALIZA ESTO!
+PATH_TO_FIREBASE_KEY = './config/agenda-6ad6b-firebase-adminsdk-fbsvc-0ae3e78192.json' # <--- UPDATE THIS!
 
 PROJECT_ID = 'agenda-6ad6b'
 
 COLLECTION_NAME = 'agenda_events'
 
-# --- Inicializar Firebase Admin SDK ---
+# --- Initialize Firebase Admin SDK ---
 def initialize_firebase():
-    """Inicializa la app de Firebase con las credenciales del servicio."""
+    """Initializes the Firebase app with the service credentials."""
     try:
-        # Verifica si la app ya fue inicializada para evitar errores
+        # Check if the app has already been initialized to avoid errors
         if not firebase_admin._apps:
-            # Usar las credenciales descargadas
+            # Use the downloaded credentials
             cred = credentials.Certificate(PATH_TO_FIREBASE_KEY)
             firebase_admin.initialize_app(cred, {'projectId': PROJECT_ID})
 
-        # Retorna el cliente de Firestore
+        # Return the Firestore client
         return firestore.client()
 
     except Exception as e:
         print(f"Error al inicializar Firebase o conectar con Firestore: {e}")
         print("Asegúrate de que la ruta a tu archivo de clave de servicio es correcta.")
         print("También verifica que el archivo existe y que las credenciales son válidas.")
-        return None # Retorna None si falla la inicialización
+        return None # Return None if initialization fails
 
-# --- Opciones del Menú ---
+# --- Menu Options ---
 SCHEDULE = 1
 ATTEND = 2
-VIEW_ALL = 3 # Agregamos una opción para ver todos los eventos (pendientes y atendidos)
+VIEW_ALL = 3 # We add an option to view all events (pending and attended)
 QUIT = 0
 
-# --- Funciones de la Agenda con Firestore ---
+# --- Agenda Functions with Firestore ---
 
 def display_menu():
-    """Muestra el menú principal."""
-    os.system('cls' if os.name == 'nt' else 'clear') # Limpia la consola (funciona en Windows y otros)
+    """Displays the main menu."""
+    os.system('cls' if os.name == 'nt' else 'clear') # Clear the console (works on Windows and others)
     print(f'''                                      My Calendar
 {SCHEDULE}.- Schedule event
 {ATTEND}.- Attend next event
@@ -50,7 +50,7 @@ def display_menu():
 {QUIT}.- Quit''')
 
 def schedule_event(db):
-    """Programa un nuevo evento guardándolo en Firestore."""
+    """Schedules a new event by saving it to Firestore."""
     os.system('cls' if os.name == 'nt' else 'clear')
     print('                                         Schedule Event')
     event_description = input('Event description: ')
@@ -60,17 +60,17 @@ def schedule_event(db):
         return
 
     try:
-        # Crear un diccionario con los datos del evento
+        # Create a dictionary with the event data
         nuevo_evento = {
             'description': event_description,
-            'created_at': firestore.SERVER_TIMESTAMP, # Usa un timestamp del servidor
-            'status': 'pending' # Añadimos un campo de estado
+            'created_at': firestore.SERVER_TIMESTAMP, # Use a server timestamp
+            'status': 'pending' # We add a status field
         }
 
-        # Obtener una referencia a la colección de eventos
+        # Get a reference to the events collection
         events_ref = db.collection(COLLECTION_NAME)
 
-        # Añadir el documento a la colección. Firestore generará un ID automáticamente.
+        # Add the document to the collection. Firestore will generate an ID automatically.
         update_time, doc_ref = events_ref.add(nuevo_evento)
 
         print(f"Event '{event_description}' scheduled successfully with ID: {doc_ref.id}")
@@ -81,27 +81,27 @@ def schedule_event(db):
 
 def attend_event(db):
     """
-    Busca el evento pendiente más antiguo en Firestore (por fecha de creación),
-    lo muestra y PIDE CONFIRMACIÓN para marcarlo como 'completed'.
+    Searches for the oldest pending event in Firestore (by creation date),
+    displays it, and ASKS FOR CONFIRMATION to mark it as 'completed'.
     """
     os.system('cls' if os.name == 'nt' else 'clear')
     print('                                         Attend Event')
 
     try:
-        # Obtener una referencia a la colección de eventos
+        # Get a reference to the events collection
         events_ref = db.collection(COLLECTION_NAME)
 
-        # Consultar los eventos con estado 'pending', ordenados por fecha de creación (ascendente)
-        # y limitar a 1 para obtener el más antiguo.
-        query = events_ref.where(filter=FieldFilter("status", "==", "pending")).order_by("created_at", direction='ASCENDING').limit(1) # <-- Usamos el string 'ASCENDING'
+        # Query events with 'pending' status, ordered by creation date (ascending)
+        # and limit to 1 to get the oldest.
+        query = events_ref.where(filter=FieldFilter("status", "==", "pending")).order_by("created_at", direction='ASCENDING').limit(1) # <-- We use the string 'ASCENDING'
 
-        # Obtener los resultados de la consulta
+        # Get the query results
         docs = list(query.stream())
 
         if not docs:
             print('No pending events to attend.')
         else:
-            # El primer documento en la lista es el evento más antiguo pendiente
+            # The first document in the list is the oldest pending event
             event_doc = docs[0]
             event_data = event_doc.to_dict()
             event_id = event_doc.id
@@ -110,35 +110,35 @@ def attend_event(db):
             print(f'Next pending event (ID: {event_id}):')
             print(f'  Description: {description}')
 
-            # --- ¡AÑADIR PASO DE CONFIRMACIÓN AQUÍ! ---
+            # --- ADD CONFIRMATION STEP HERE! ---
             confirm = input("Mark this event as completed? (yes/no): ").lower().strip()
 
             if confirm == 'yes':
-                # Marcar el evento como 'completed' en Firestore
+                # Mark the event as 'completed' in Firestore
                 event_doc.reference.update({'status': 'completed'})
-                print("\nEvent marked as completed.") # Añadir un salto de línea para mejor lectura
+                print("\nEvent marked as completed.") # Add a newline for better readability
             elif confirm == 'no':
-                print("\nEvent was NOT marked as completed.") # Añadir un salto de línea
+                print("\nEvent was NOT marked as completed.") # Add a newline
             else:
-                print("\nInvalid response. Event was NOT marked as completed.") # Añadir un salto de línea
+                print("\nInvalid response. Event was NOT marked as completed.") # Add a newline
 
     except Exception as e:
         print(f"Error attending event: {e}")
 
 def view_all_events(db):
-    """Muestra todos los eventos en Firestore, ordenados por fecha de creación."""
+    """Displays all events in Firestore, ordered by creation date."""
     os.system('cls' if os.name == 'nt' else 'clear')
     print('                                         All Events')
 
     try:
-        # Obtener una referencia a la colección de eventos
+        # Get a reference to the events collection
         events_ref = db.collection(COLLECTION_NAME)
 
-        # Consultar todos los eventos, ordenados por fecha de creación (ascendente)
-        # --- CORRECCIÓN AQUÍ ---
-        query = events_ref.order_by("created_at", direction='ASCENDING') # <-- Usamos el string 'ASCENDING'
+        # Query all events, ordered by creation date (ascending)
+        # --- CORRECTION HERE ---
+        query = events_ref.order_by("created_at", direction='ASCENDING') # <-- We use the string 'ASCENDING'
 
-        # Obtener los resultados de la consulta
+        # Get the query results
         docs = list(query.stream())
 
         if not docs:
@@ -150,34 +150,34 @@ def view_all_events(db):
                 event_id = doc.id
                 description = event_data.get("description", "No description")
                 status = event_data.get("status", "unknown")
-                created_at = event_data.get("created_at") # Esto será un Timestamp object
+                created_at = event_data.get("created_at") # This will be a Timestamp object
 
-                # Formatear la fecha de creación si está disponible
+                # Format the creation date if available
                 date_str = "N/A"
-                # Firestore SERVER_TIMESTAMP devuelve un objeto datetime
+                # Firestore SERVER_TIMESTAMP returns a datetime object
                 if isinstance(created_at, datetime.datetime):
-                    date_str = created_at.strftime('%Y-%m-%d %H:%M:%S') # Añadimos segundos para más precisión
+                    date_str = created_at.strftime('%Y-%m-%d %H:%M:%S') # We add seconds for more precision
 
                 print(f"ID: {event_id}")
                 print(f"  Description: {description}")
                 print(f"  Status: {status}")
                 print(f"  Created At: {date_str}")
                 print("-" * 40)
-                print("") # Línea en blanco entre eventos para mejor lectura
+                print("") # Blank line between events for better readability
 
 
     except Exception as e:
         print(f"Error viewing events: {e}")
 
 
-# --- Función Principal ---
+# --- Main Function ---
 def main():
-    """Función principal de la aplicación de agenda."""
+    """Main function of the agenda application."""
 
-    # Inicializar Firebase y obtener el cliente de Firestore
+    # Initialize Firebase and get the Firestore client
     db = initialize_firebase()
 
-    # Si la inicialización falla, salimos
+    # If initialization fails, exit
     if db is None:
         print("\nExiting due to Firebase initialization failure.")
         return
@@ -191,31 +191,31 @@ def main():
         except ValueError:
             print("Invalid input. Please enter a number.")
             input('Press ENTER to continue...')
-            continue # Vuelve al inicio del bucle
+            continue # Go back to the beginning of the loop
 
-        # IMPORTANTE: Limpiamos la pantalla *después* de obtener la opción
-        # y *antes* de ejecutar la función, para que la salida de la función se vea.
+        # IMPORTANT: We clear the screen *after* getting the option
+        # and *before* executing the function, so that the function's output is visible.
         os.system('cls' if os.name == 'nt' else 'clear')
 
         if opc == SCHEDULE:
-            schedule_event(db) # Pasamos el cliente de Firestore a la función
-            # Pausa para que el usuario lea el resultado antes de limpiar
-            input('Press ENTER to continue...') # <-- Añadir pausa aquí
+            schedule_event(db) # Pass the Firestore client to the function
+            # Pause for the user to read the result before clearing
+            input('Press ENTER to continue...') # <-- Add pause here
         elif opc == ATTEND:
-            attend_event(db) # Pasamos el cliente de Firestore a la función
-            # Pausa para que el usuario lea el resultado antes de limpiar
-            input('Press ENTER to continue...') # <-- Añadir pausa aquí
-        elif opc == VIEW_ALL: # Nueva opción
-            view_all_events(db) # Pasamos el cliente de Firestore a la función
-            # --- ¡AÑADE LA PAUSA AQUÍ! ---
-            input('Press ENTER to continue...') # <-- ESTA ES LA LÍNEA QUE FALTABA
+            attend_event(db) # Pass the Firestore client to the function
+            # Pause for the user to read the result before clearing
+            input('Press ENTER to continue...') # <-- Add pause here
+        elif opc == VIEW_ALL: # New option
+            view_all_events(db) # Pass the Firestore client to the function
+            # --- ADD THE PAUSE HERE! ---
+            input('Press ENTER to continue...') # <-- THIS IS THE MISSING LINE
         elif opc == QUIT:
             forward = False
-            # No pedir ENTER después de Salir
+            # Do not ask for ENTER after exiting
             print('Good-Bye')
         else:
             print('Invalid option...')
-            # Solo pedir ENTER si la opción no fue Salir
+            # Only ask for ENTER if the option was not Exit
             input('Press ENTER to continue...')
 
 if __name__ == '__main__':
