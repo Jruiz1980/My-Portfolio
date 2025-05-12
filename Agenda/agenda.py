@@ -27,9 +27,9 @@ def initialize_firebase():
         return firestore.client()
 
     except Exception as e:
-        print(f"Error al inicializar Firebase o conectar con Firestore: {e}")
-        print("Asegúrate de que la ruta a tu archivo de clave de servicio es correcta.")
-        print("También verifica que el archivo existe y que las credenciales son válidas.")
+        print(f"Error initializing Firebase or connecting to Firestore: {e}")
+        print("Ensure that the path to your service account key file is correct.")
+        print("Also verify that the file exists and that the credentials are valid.")
         return None # Return None if initialization fails
 
 # --- Menu Options ---
