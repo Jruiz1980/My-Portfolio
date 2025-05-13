@@ -7,7 +7,8 @@ from google.cloud.firestore_v1.base_query import FieldFilter # Keep this if you 
 # from google.cloud.firestore_v1.base_query import Order # <--- WE REMOVE THIS!
 import datetime # To handle timestamps
 
-PATH_TO_FIREBASE_KEY = './config/agenda-6ad6b-firebase-adminsdk-fbsvc-0ae3e78192.json' # <--- UPDATE THIS!
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PATH_TO_FIREBASE_KEY = os.path.join(SCRIPT_DIR, 'config', 'agenda-6ad6b-firebase-adminsdk-fbsvc-ea53d749e3.json') # <--- UPDATE THIS!
 
 PROJECT_ID = 'agenda-6ad6b'
 
