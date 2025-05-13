@@ -3,7 +3,7 @@
 This is a simple command-line interface (CLI) application for managing agenda events. It uses Google's Firebase Firestore as a backend to store and retrieve event data.
 
 ## Video Tutorial
-[Agenda](https://youtube.com)
+[Agenda](https://youtu.be/vhYJSwvGidY)
 
 ## Features
 
