@@ -1,29 +1,27 @@
 import arcade
 from components.pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King # Import from pieces.py
 from moves.input_handler import InputHandler
+import components.constants as c # Import constants
+
 
 class MyGame(arcade.Window):
     def __init__(self):
-        self.SQUARE_SIZE = 75
-        self.BOARD_SIZE = 8
-        self.MARGIN = 40
-        self.LABEL_FONT_SIZE = 14
-        self.LABEL_COLOR = arcade.color.BLACK
-        self.WHITE = "white"
-        self.BLACK = "black"
-        self.SCREEN_TITLE = "Chess"
+        self.SQUARE_SIZE = c.SQUARE_SIZE
+        self.BOARD_SIZE = c.BOARD_SIZE
+        self.MARGIN = c.MARGIN
+        self.WHITE = c.WHITE_PLAYER_COLOR_NAME
+        self.BLACK = c.BLACK_PLAYER_COLOR_NAME
 
         self.board_pixel_width = self.SQUARE_SIZE * self.BOARD_SIZE
         self.board_pixel_height = self.SQUARE_SIZE * self.BOARD_SIZE
 
         window_width = self.board_pixel_width + 2 * self.MARGIN
         window_height = self.board_pixel_height + 2 * self.MARGIN
-        super().__init__(window_width, window_height, self.SCREEN_TITLE)
-        arcade.set_background_color(arcade.color.BEIGE)
+        super().__init__(window_width, window_height, c.SCREEN_TITLE)
+        arcade.set_background_color(c.BACKGROUND_COLOR)
 
-        self.board_pixel_width = self.board_pixel_width
-        self.board_pixel_height = self.board_pixel_height
-
+        self.game_state = c.SETUP # Start in the setup state
+        
         self.all_piece_objects: list[Piece] = [] # To store Piece objects for logic
         self.piece_sprites = arcade.SpriteList()
         self._setup_pieces()
@@ -36,6 +34,8 @@ class MyGame(arcade.Window):
         self.left_labels = []
         self.right_labels = []
         self._create_labels_as_text_objects()
+
+        self._setup_ui_buttons()
 
 
     def _setup_pieces(self):
@@ -64,6 +64,45 @@ class MyGame(arcade.Window):
         q_b = Queen(self.BLACK, 7, 3); self.all_piece_objects.append(q_b); self.piece_sprites.append(q_b.sprite)
         k_b = King(self.BLACK, 7, 4); self.all_piece_objects.append(k_b); self.piece_sprites.append(k_b.sprite)
 
+    def _setup_ui_buttons(self):
+        """Initializes properties for UI buttons."""
+        self.buttons = {
+            "start": {"center_x": self.width / 2, "center_y": self.height - 50, 
+                        "width": 150, "height": 40, "text": "Start Game", 
+                        "color": c.BUTTON_GREEN, "text_color": c.BUTTON_TEXT_BLACK, "font_size": 16},
+            "reset": {"center_x": self.width / 2, "center_y": self.height - 100, 
+                        "width": 150, "height": 40, "text": "Reset", 
+                        "color": c.BUTTON_RED, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16},
+            "white_color": {"center_x": self.width / 2 - 80, "center_y": self.height - 150, 
+                            "width": 70, "height": 30, "text": "White", 
+                            "color": arcade.color.WHITE, "text_color": c.BUTTON_TEXT_BLACK, "font_size": 14}, # arcade.color.WHITE for button face
+            "black_color": {"center_x": self.width / 2 + 80, "center_y": self.height - 150, 
+                            "width": 70, "height": 30, "text": "Black", 
+                            "color": arcade.color.BLACK, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 14}, # arcade.color.BLACK for button face
+            "pvp": {"center_x": self.width / 2 - 80, "center_y": self.height - 200, 
+                    "width": 100, "height": 30, "text": "PvP", 
+                    "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 14},
+            "pvc": {"center_x": self.width / 2 + 80, "center_y": self.height - 200, 
+                    "width": 100, "height": 30, "text": "PvC", 
+                    "color": c.BUTTON_ORANGE, "text_color": c.BUTTON_TEXT_BLACK, "font_size": 14},
+        }
+
+    def _draw_button(self, button_props):
+        """Draws a button based on its properties."""
+        arcade.draw_lrbt_rectangle_filled(button_props["center_x"], button_props["center_y"],
+                                    button_props["height"], button_props["width"],
+                                    button_props["color"])
+        arcade.draw_text(button_props["text"], button_props["center_x"], button_props["center_y"],
+                        button_props["text_color"], font_size=button_props["font_size"],
+                        anchor_x="center", anchor_y="center")
+
+    def _is_point_in_button(self, x, y, button_props):
+        """Checks if a point (x, y) is inside a button."""
+        half_width = button_props["width"] / 2
+        half_height = button_props["height"] / 2
+        return (button_props["center_x"] - half_width <= x <= button_props["center_x"] + half_width and
+                button_props["center_y"] - half_height <= y <= button_props["center_y"] + half_height)
+
     def _draw_pieces(self):
         """Draws all the pieces on the board."""
 
@@ -80,9 +119,9 @@ class MyGame(arcade.Window):
 
 
                 if (row + col) % 2 == 0:
-                    color = arcade.color.PICTON_BLUE
+                    color = c.PICTON_BLUE
                 else:
-                    color = arcade.color.BISQUE
+                    color = c.BISQUE
                 arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, color)
 
     def _create_labels_as_text_objects(self):
@@ -92,8 +131,8 @@ class MyGame(arcade.Window):
             label_text = chr(ord('A') + col)
             text_x = self.MARGIN + col * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
             text_y = self.MARGIN // 2
-            self.bottom_labels.append(arcade.Text(label_text, text_x, text_y, self.LABEL_COLOR,
-                font_size=self.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
+            self.bottom_labels.append(arcade.Text(label_text, text_x, text_y, c.LABEL_COLOR,
+                font_size=c.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
 
         # Draw A-H labels above the board
         for i in range(self.BOARD_SIZE): # i is the column index from left (0) to right (7)
@@ -101,16 +140,16 @@ class MyGame(arcade.Window):
             label_text = chr(ord('A') + char_offset)
             text_x = self.MARGIN + i * self.SQUARE_SIZE + self.SQUARE_SIZE // 2 # Position based on i
             text_y = self.MARGIN + self.board_pixel_height + self.MARGIN // 2
-            self.top_labels.append(arcade.Text(label_text, text_x, text_y, self.LABEL_COLOR,
-                font_size=self.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
+            self.top_labels.append(arcade.Text(label_text, text_x, text_y, c.LABEL_COLOR,
+                font_size=c.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
 
         # Draw 1-8 labels to the left of the board
         for row in range(self.BOARD_SIZE):
             label_text = str(row + 1)
             text_x = self.MARGIN // 2
             text_y = self.MARGIN + row * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
-            self.left_labels.append(arcade.Text(label_text, text_x, text_y, self.LABEL_COLOR,
-                font_size=self.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
+            self.left_labels.append(arcade.Text(label_text, text_x, text_y, c.LABEL_COLOR,
+                font_size=c.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
 
         # Draw 1-8 labels to the right of the board
         for row in range(self.BOARD_SIZE):
@@ -118,8 +157,8 @@ class MyGame(arcade.Window):
             label_text = str(self.BOARD_SIZE - row)
             text_x = self.MARGIN + self.board_pixel_width + self.MARGIN // 2
             text_y = self.MARGIN + row * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
-            self.right_labels.append(arcade.Text(label_text, text_x, text_y, self.LABEL_COLOR,
-                font_size=self.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
+            self.right_labels.append(arcade.Text(label_text, text_x, text_y, c.LABEL_COLOR,
+                font_size=c.LABEL_FONT_SIZE, anchor_x="center", anchor_y="center"))
 
     def _draw_labels(self):
         """Draws the algebraic notation labels around the board."""
@@ -138,9 +177,62 @@ class MyGame(arcade.Window):
         self._draw_labels()
         self._draw_pieces()
 
+        # Draw possible move highlights
+        for row, col in self.input_handler.possible_moves_coords:
+            center_x = self.MARGIN + col * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
+            center_y = self.MARGIN + row * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
+            arcade.draw_circle_filled(center_x, center_y, self.SQUARE_SIZE * 0.2,
+                c.HIGHLIGHT_YELLOW_TRANSPARENT) # Semi-transparent yellow
+
+
+
+
+        if self.game_state == c.SETUP:
+            # Draw setup UI elements
+            self._draw_button(self.buttons["start"])
+            self._draw_button(self.buttons["white_color"])
+            self._draw_button(self.buttons["black_color"])
+            self._draw_button(self.buttons["pvp"])
+            self._draw_button(self.buttons["pvc"])
+
+        if self.game_state == c.PLAYING or self.game_state == c.GAME_OVER:
+            # Draw reset button
+            self._draw_button(self.buttons["reset"])
+
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int):
         """Called when the user presses a mouse button."""
-        self.input_handler.on_mouse_press(x, y, button, modifiers)
+        if self.game_state == c.SETUP:
+            # Handle clicks on setup buttons
+            if self._is_point_in_button(x, y, self.buttons["start"]):
+                print("Start button clicked!")
+                self.game_state = c.PLAYING # Transition to playing state
+                # TODO: Apply selected setup options (color, mode)
+                # TODO: Disable setup buttons
+
+            if self._is_point_in_button(x, y, self.buttons["white_color"]):
+                print("Selected White")
+                # TODO: Set player color to White
+            if self._is_point_in_button(x, y, self.buttons["black_color"]):
+                print("Selected Black")
+                # TODO: Set player color to Black
+            if self._is_point_in_button(x, y, self.buttons["pvp"]):
+                print("Selected PvP")
+            if self._is_point_in_button(x, y, self.buttons["pvc"]):
+                print("Selected PvC")
+
+        elif self.game_state == c.PLAYING:
+            # Delegate input to the input handler for piece movement
+            self.input_handler.on_mouse_press(x, y, button, modifiers)
+
+        elif self.game_state == c.GAME_OVER:
+            # Handle clicks on game over screen or reset button
+            if self._is_point_in_button(x, y, self.buttons["reset"]):
+                print("Reset button clicked!")
+                self._setup_pieces() # Reset pieces
+                self.game_state = c.SETUP # Go back to setup or playing state
+                # TODO: Enable setup buttons if going back to setup
+                self.input_handler.selected_piece_object = None # Deselect any piece
+
 
 
 def main():

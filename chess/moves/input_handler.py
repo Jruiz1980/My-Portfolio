@@ -8,6 +8,7 @@ from moves import move_logic # Corrected: import move_logic from parent director
 class InputHandler:
     def __init__(self, game_instance):
         self.game = game_instance  # Reference to the MyGame instance
+        self.possible_moves_coords: list[tuple[int, int]] = [] # Store (row, col) of possible moves
         self.selected_piece_object: Piece | None = None
 
     def screen_to_board_coords(self, screen_x: int, screen_y: int) -> tuple[int, int] | None:
@@ -51,6 +52,7 @@ class InputHandler:
                 
                 # Deselect piece whether move was valid or not (for simplicity here)
                 self.selected_piece_object = None
+                self.possible_moves_coords = [] # Clear possible moves
                 # You might want to visually deselect (e.g., remove highlight)
 
             elif clicked_piece_object:
@@ -58,7 +60,21 @@ class InputHandler:
                 self.selected_piece_object = clicked_piece_object
                 print(f"Selected {self.selected_piece_object.piece_type} at ({row}, {col})")
                 # You might want to visually highlight the selected piece here
+                self._calculate_possible_moves()
             else:
                 # Clicked on an empty square and no piece selected
                 self.selected_piece_object = None # Ensure deselection
+                self.possible_moves_coords = [] # Clear possible moves
                 print("Clicked on an empty square.")
+
+    def _calculate_possible_moves(self):
+        """Calculates and stores valid moves for the selected piece."""
+        self.possible_moves_coords = []
+        if self.selected_piece_object:
+            # Iterate through all possible squares on the board
+            for r in range(self.game.BOARD_SIZE):
+                for c in range(self.game.BOARD_SIZE):
+                    # Check if the move to (r, c) is valid for the selected piece
+                    if move_logic.is_move_valid(self.selected_piece_object, r, c,
+                                                self.game.all_piece_objects, self.game.BOARD_SIZE):
+                        self.possible_moves_coords.append((r, c))
