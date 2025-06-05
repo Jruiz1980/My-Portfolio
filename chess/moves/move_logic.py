@@ -2,10 +2,7 @@
 Handles the logic for validating chess piece moves.
 """
 
-from components.pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King
-# You might need to import BOARD_SIZE or other constants if they are defined elsewhere
-# and not passed as arguments. For now, let's assume they might be passed or accessed
-# via a game state object.
+from components.pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King, WHITE, BLACK
 
 def get_piece_at_square(target_row: int, target_col: int, all_pieces: list[Piece]) -> Piece | None:
     """Checks if a piece exists at the given board coordinates."""
@@ -30,21 +27,40 @@ def is_move_valid(piece: Piece, new_row: int, new_col: int, all_pieces: list[Pie
     # Add specific rules for each piece type
     if isinstance(piece, Pawn):
         # Basic pawn move: one step forward (simplistic, no capture/double step yet)
-        direction = 1 if piece.color == "white" else -1 # Assuming white moves "up" (row increases)
+        # White pawns move from row 1 towards 7 (increasing row index)
+        # Black pawns move from row 6 towards 0 (decreasing row index)
+        direction = 1 if piece.color == WHITE else -1
         if piece.col == new_col and new_row == piece.row + direction:
             if not target_piece: # Can't move forward if square is occupied
                 return True
+        # Add logic for initial two-square move and diagonal captures
     elif isinstance(piece, Rook):
         # Basic rook move: horizontal or vertical (simplistic, no obstruction check yet)
         if piece.row == new_row or piece.col == new_col:
+            # TODO: Add obstruction check (no pieces between start and end)
             return True
-    # Add elif for Knight, Bishop, Queen, King with their specific rules
-    # For example, a Knight's L-shape move:
     elif isinstance(piece, Knight):
         row_diff = abs(new_row - piece.row)
         col_diff = abs(new_col - piece.col)
         if (row_diff == 2 and col_diff == 1) or \
         (row_diff == 1 and col_diff == 2):
+            return True
+    elif isinstance(piece, Bishop):
+        # Basic bishop move: diagonal (simplistic, no obstruction check yet)
+        if abs(new_row - piece.row) == abs(new_col - piece.col):
+            # TODO: Add obstruction check
+            return True
+    elif isinstance(piece, Queen):
+        # Basic queen move: horizontal, vertical, or diagonal (simplistic, no obstruction check yet)
+        if piece.row == new_row or piece.col == new_col or \
+            abs(new_row - piece.row) == abs(new_col - piece.col):
+            # TODO: Add obstruction check
+            return True
+    elif isinstance(piece, King):
+        # Basic king move: one square in any direction
+        row_diff = abs(new_row - piece.row)
+        col_diff = abs(new_col - piece.col)
+        if row_diff <= 1 and col_diff <= 1:
             return True
 
     return False # Default to invalid if no rule matches or for unhandled pieces

@@ -2,8 +2,8 @@
 Handles mouse input for the chess game.
 """
 import arcade
-from ..components.pieces import Piece # For type hinting
-from moves import move_logic # To use move validation
+from components.pieces import Piece # For type hinting
+from moves import move_logic # Corrected: import move_logic from parent directory
 
 class InputHandler:
     def __init__(self, game_instance):
