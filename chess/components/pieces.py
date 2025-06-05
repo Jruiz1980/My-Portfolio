@@ -3,7 +3,7 @@ import os
 
 SQUARE_SIZE = 75  # Assuming this is consistent with your main game file
 MARGIN = 40
-PIECE_SCALE = 0.8
+PIECE_SCALE = 0.4
 
 WHITE = "white"
 BLACK = "black"
