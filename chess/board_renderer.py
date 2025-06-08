@@ -75,7 +75,12 @@ class BoardRenderer:
         for row, col in coords:
             center_x = self.MARGIN + col * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
             center_y = self.MARGIN + row * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
-            arcade.draw_circle_filled(center_x, center_y, self.SQUARE_SIZE * 0.2, c.HIGHLIGHT_YELLOW_TRANSPARENT)
+            radius = self.SQUARE_SIZE * 0.2
+            fill_color = c.HIGHLIGHT_MOVE_FILL_COLOR # Usar el nuevo verde claro
+            border_color = c.BUTTON_ORANGE # Usamos el naranja para el borde
+            border_width = 3 # Ancho del borde en píxeles
+            arcade.draw_circle_filled(center_x, center_y, radius, fill_color) # Dibujar relleno verde
+            arcade.draw_circle_outline(center_x, center_y, radius, border_color, border_width)
 
     def draw_selected_square_highlight(self, coord: tuple[int, int]):
         """Draws a highlight on the selected piece's square."""

@@ -27,8 +27,10 @@ BUTTON_BLUE = arcade.color.BLUE
 BUTTON_ORANGE = arcade.color.ORANGE
 HIGHLIGHT_YELLOW_TRANSPARENT = (arcade.color.YELLOW[0], arcade.color.YELLOW[1], arcade.color.YELLOW[2], 100) # (R, G, B, Alpha)
 PAWN_PROMOTION = 3
-SELECTED_SQUARE_HIGHLIGHT_COLOR = arcade.color.YELLOW
-
+SELECTED_SQUARE_HIGHLIGHT_COLOR = arcade.color.YELLOW # For the square of the selected piece
+HIGHLIGHT_MOVE_FILL_COLOR = arcade.color.LIGHT_GREEN # Lighter green for possible move circles
+HISTORY_AREA_WIDTH = 200
+CHECK_MESSAGE_DURATION = 2.0
 
 
 # Screen

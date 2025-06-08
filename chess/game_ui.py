@@ -21,13 +21,39 @@ class GameUI:
                             "width": 120, "height": 40, "text": "Play as Black",
                             "color": arcade.color.DARK_GRAY, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 14, "action": "black_color"},
             "pvp": {"center_x": self.window_width / 2 - 80, "center_y": self.window_height / 2 - 60,
-                    "width": 100, "height": 40, "text": "PvP",
+                    "width": 100, "height": 40, "text": "Play human", # Ancho se actualizará dinámicamente abajo
                     "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 14, "action": "pvp"},
             "pvc": {"center_x": self.window_width / 2 + 80, "center_y": self.window_height / 2 - 60,
-                    "width": 100, "height": 40, "text": "PvC",
+                    "width": 100, "height": 40, "text": "Play with AI",
                     "color": c.BUTTON_ORANGE, "text_color": c.BUTTON_TEXT_BLACK, "font_size": 14, "action": "pvc"},
         }
 
+        # Ajustar dinámicamente el ancho del botón "pvp" según su texto
+        pvp_button_props = self.setup_buttons["pvp"]
+        pvp_text = pvp_button_props["text"]
+        pvp_font_size = pvp_button_props["font_size"]
+
+        # Crear un objeto de texto temporal para medir su ancho.
+        # La propiedad .width debería estar disponible después de crear el objeto.
+        # Si text_width resulta ser None, podría ser un problema con la carga de la fuente.
+        # En ese caso, especificar un font_name común como "Arial" podría ayudar:
+        # font_name="Arial"
+        temp_text_obj = arcade.Text(
+            text=pvp_text,
+            x=0,  # Posición inicial no afecta la medición del ancho
+            y=0,
+            color=pvp_button_props["text_color"], # Usar el color del texto del botón
+            font_size=pvp_font_size,
+            font_name="Arial"  # Especificar una fuente común
+        )
+        text_width = temp_text_obj.width
+
+        if text_width is not None:
+            horizontal_padding = 20  # Añadir 10px de padding a cada lado
+            self.setup_buttons["pvp"]["width"] = text_width + horizontal_padding
+        else:
+            # Fallback si la medición del texto falla
+            print("Advertencia: No se pudo medir el ancho del texto para el botón PvP. Usando ancho predeterminado.")
         # For PLAYING or GAME_OVER state (Reset button is below the board)
         # The board itself is MARGIN + board_pixel_height + MARGIN high.
         # Reset button y position needs to be calculated based on board height.
@@ -35,14 +61,22 @@ class GameUI:
         # For simplicity, let's place it near the bottom of the window.
         # A more robust way would be to pass board_pixel_height or calculate it.
         # For now, placing it relative to window_height.
-        reset_button_y = c.MARGIN / 2 # Place it in the bottom margin area
+        gameplay_button_y = c.MARGIN / 2 # Place it in the bottom margin area
         if self.window_height < (c.SQUARE_SIZE * c.BOARD_SIZE + 2 * c.MARGIN + 50): # check if enough space
-            reset_button_y = self.window_height - 30 # fallback if window too small
+            gameplay_button_y = self.window_height - 30 # fallback if window too small
+
+        button_width = 160
+        button_spacing = 20
 
         self.gameplay_buttons = {
-            "reset": {"center_x": self.window_width / 2, "center_y": reset_button_y,
-                        "width": 150, "height": 40, "text": "Reset Game",
-                        "color": c.BUTTON_RED, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "reset"},
+            "reset_board": {"center_x": self.window_width / 2 - button_width / 2 - button_spacing / 2,
+                            "center_y": gameplay_button_y, "width": button_width, "height": 40,
+                            "text": "Reset Board", "color": c.BUTTON_ORANGE,
+                            "text_color": c.BUTTON_TEXT_BLACK, "font_size": 16, "action": "reset_board"},
+            "new_game": {"center_x": self.window_width / 2 + button_width / 2 + button_spacing / 2,
+                        "center_y": gameplay_button_y, "width": button_width, "height": 40,
+                        "text": "New Game", "color": c.BUTTON_RED,
+                        "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "new_game"},
         }
 
         # For PAWN_PROMOTION state
@@ -56,13 +90,13 @@ class GameUI:
 
         self.promotion_buttons = {
             "promote_queen": {"center_x": start_x, "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
-                              "text": "Queen", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_queen"},
+                            "text": "Queen", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_queen"},
             "promote_rook": {"center_x": start_x + promo_btn_width + spacing, "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
-                             "text": "Rook", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_rook"},
+                            "text": "Rook", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_rook"},
             "promote_bishop": {"center_x": start_x + 2 * (promo_btn_width + spacing), "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
-                               "text": "Bishop", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_bishop"},
+                            "text": "Bishop", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_bishop"},
             "promote_knight": {"center_x": start_x + 3 * (promo_btn_width + spacing), "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
-                               "text": "Knight", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_knight"},
+                            "text": "Knight", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_knight"},
         }
 
     def _draw_button(self, button_props):
@@ -93,11 +127,12 @@ class GameUI:
             for button_props in self.setup_buttons.values():
                 self._draw_button(button_props)
         elif game_state == c.PLAYING or game_state == c.GAME_OVER:
-            # Only draw reset button during play or game over
-            self._draw_button(self.gameplay_buttons["reset"])
+            # Draw gameplay buttons (Reset Board, New Game)
+            for button_props in self.gameplay_buttons.values():
+                self._draw_button(button_props)
         elif game_state == c.PAWN_PROMOTION:
             arcade.draw_text("Promote Pawn to:", self.window_width / 2, self.window_height / 2 + 100,
-                             arcade.color.BLACK, font_size=24, anchor_x="center")
+                            arcade.color.BLACK, font_size=24, anchor_x="center")
             for button_props in self.promotion_buttons.values():
                 self._draw_button(button_props)
 

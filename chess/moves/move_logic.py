@@ -168,3 +168,89 @@ def is_king_in_check(king_color: str, all_pieces: list[Piece], board_size: int) 
         return False # Should not happen
     opponent_color = BLACK if king_color == WHITE else WHITE
     return is_square_attacked(king.row, king.col, opponent_color, all_pieces, board_size)
+
+def coords_to_algebraic(row: int, col: int) -> str:
+    """Converts 0-indexed board coordinates to algebraic notation (e.g., (0,0) -> "a1")."""
+    file = chr(ord('a') + col)
+    rank = str(row + 1) # Assuming row 0 is rank '1'
+    return f"{file}{rank}"
+
+def get_piece_algebraic_prefix(piece_type: str) -> str:
+    """Gets the algebraic notation prefix for a piece type (empty for pawn)."""
+    if piece_type == "pawn": return ""
+    if piece_type == "knight": return "N"
+    if piece_type == "bishop": return "B"
+    if piece_type == "rook": return "R"
+    if piece_type == "queen": return "Q"
+    if piece_type == "king": return "K"
+    return "?" # Should not happen for valid piece types
+
+def get_promoted_piece_char(piece_type_name: str | None) -> str | None:
+    """Converts promoted piece type name (e.g., 'Queen') to its algebraic character (e.g., 'Q')."""
+    if not piece_type_name:
+        return None
+    # Assuming piece_type_name matches the class name like 'Queen', 'Rook'
+    if piece_type_name == "Queen": return "Q"
+    if piece_type_name == "Rook": return "R"
+    if piece_type_name == "Bishop": return "B"
+    if piece_type_name == "Knight": return "N"
+    return None
+
+def format_move_to_algebraic(
+    all_pieces_before_move: list[Piece], # Board state *before* this move
+    board_size: int,
+    moved_piece_original_row: int,
+    moved_piece_original_col: int,
+    moved_piece_type: str,
+    moved_piece_color: str,
+    dest_row: int,
+    dest_col: int,
+    was_capture: bool,
+    promoted_to_char: str | None, # Single character like "Q", "N"
+    is_check_after_move: bool,
+    is_checkmate_after_move: bool,
+    # TODO: Add is_castling_kingside, is_castling_queenside flags
+) -> str:
+    """
+    Formats a move into short algebraic notation.
+    Note: Disambiguation logic is complex and is simplified here.
+    Castling notation (O-O, O-O-O) is not yet implemented.
+    """
+    notation_parts = []
+    is_pawn = (moved_piece_type == "pawn")
+
+    # 1. Piece Prefix (or pawn capture file)
+    if is_pawn:
+        if was_capture:
+            notation_parts.append(chr(ord('a') + moved_piece_original_col)) # e.g., "e" for exd5
+    else:
+        notation_parts.append(get_piece_algebraic_prefix(moved_piece_type))
+
+    # 2. Disambiguation (Simplified - TODO: Implement full disambiguation)
+    # Full disambiguation requires checking if other identical pieces could also move to dest_square
+    # from all_pieces_before_move, and then adding file, rank, or both from the original square.
+    # Example: If two Knights can go to f3, it becomes Ngf3 or Ndf3.
+    # For now, this is omitted for brevity in this initial implementation.
+
+    # 3. Capture Indication
+    if was_capture:
+        notation_parts.append("x")
+
+    # 4. Destination Square
+    notation_parts.append(coords_to_algebraic(dest_row, dest_col))
+
+    # 5. Pawn Promotion
+    if promoted_to_char:
+        notation_parts.append("=" + promoted_to_char)
+
+    # 6. Check/Checkmate Suffix
+    if is_checkmate_after_move:
+        notation_parts.append("#")
+    elif is_check_after_move:
+        notation_parts.append("+")
+
+    # Handle Castling (if implemented and flags are passed)
+    # if is_castling_kingside: return "O-O" + ("#" if is_checkmate_after_move else "+" if is_check_after_move else "")
+    # if is_castling_queenside: return "O-O-O" + ("#" if is_checkmate_after_move else "+" if is_check_after_move else "")
+
+    return "".join(notation_parts)
