@@ -26,6 +26,9 @@ BUTTON_TEXT_WHITE = arcade.color.WHITE
 BUTTON_BLUE = arcade.color.BLUE
 BUTTON_ORANGE = arcade.color.ORANGE
 HIGHLIGHT_YELLOW_TRANSPARENT = (arcade.color.YELLOW[0], arcade.color.YELLOW[1], arcade.color.YELLOW[2], 100) # (R, G, B, Alpha)
+PAWN_PROMOTION = 3
+SELECTED_SQUARE_HIGHLIGHT_COLOR = arcade.color.YELLOW
+
 
 
 # Screen

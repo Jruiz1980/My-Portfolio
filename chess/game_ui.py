@@ -45,6 +45,25 @@ class GameUI:
                         "color": c.BUTTON_RED, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "reset"},
         }
 
+        # For PAWN_PROMOTION state
+        # Position these buttons, e.g., horizontally in the middle of the screen
+        promo_btn_y = self.window_height / 2
+        promo_btn_width = 100
+        promo_btn_height = 50
+        spacing = 10
+        total_width = 4 * promo_btn_width + 3 * spacing
+        start_x = (self.window_width - total_width) / 2 + promo_btn_width / 2
+
+        self.promotion_buttons = {
+            "promote_queen": {"center_x": start_x, "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
+                              "text": "Queen", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_queen"},
+            "promote_rook": {"center_x": start_x + promo_btn_width + spacing, "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
+                             "text": "Rook", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_rook"},
+            "promote_bishop": {"center_x": start_x + 2 * (promo_btn_width + spacing), "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
+                               "text": "Bishop", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_bishop"},
+            "promote_knight": {"center_x": start_x + 3 * (promo_btn_width + spacing), "center_y": promo_btn_y, "width": promo_btn_width, "height": promo_btn_height,
+                               "text": "Knight", "color": c.BUTTON_BLUE, "text_color": c.BUTTON_TEXT_WHITE, "font_size": 16, "action": "promote_knight"},
+        }
 
     def _draw_button(self, button_props):
         """Draws a button based on its properties."""
@@ -76,6 +95,11 @@ class GameUI:
         elif game_state == c.PLAYING or game_state == c.GAME_OVER:
             # Only draw reset button during play or game over
             self._draw_button(self.gameplay_buttons["reset"])
+        elif game_state == c.PAWN_PROMOTION:
+            arcade.draw_text("Promote Pawn to:", self.window_width / 2, self.window_height / 2 + 100,
+                             arcade.color.BLACK, font_size=24, anchor_x="center")
+            for button_props in self.promotion_buttons.values():
+                self._draw_button(button_props)
 
     def handle_mouse_press(self, x: int, y: int, game_state: int) -> str | None:
         """Checks if a button was clicked and returns its action string, or None."""
@@ -84,6 +108,8 @@ class GameUI:
             buttons_to_check = self.setup_buttons
         elif game_state == c.PLAYING or game_state == c.GAME_OVER:
             buttons_to_check = self.gameplay_buttons
+        elif game_state == c.PAWN_PROMOTION:
+            buttons_to_check = self.promotion_buttons
 
         for button_name, props in buttons_to_check.items():
             if self._is_point_in_button(x, y, props):

@@ -3,7 +3,7 @@ Handles mouse input for the chess game.
 """
 import arcade
 import copy # For deepcopying board state during simulation
-from components.pieces import Piece # For type hinting
+from components.pieces import Piece, Pawn # For type hinting
 from moves import move_logic # Corrected: import move_logic from parent directory
 
 class InputHandler:
@@ -51,26 +51,40 @@ class InputHandler:
                         self.game.piece_sprites.remove(captured_piece.sprite)
                         print(f"Captured {captured_piece.piece_type} at ({row}, {col})")
 
-                    # Valid move: Update piece's board position
+                    # Update piece's board position and sprite
                     self.selected_piece_object.row = row
                     self.selected_piece_object.col = col
-                    # Update the sprite's screen position
                     self.selected_piece_object.update_sprite_position()
                     print(f"Moved {self.selected_piece_object.piece_type} to ({row}, {col})")
-                    
-                    # Switch turn
-                    self.game.current_turn = self.game.BLACK if self.game.current_turn == self.game.WHITE else self.game.WHITE
-                    print(f"Turn: {self.game.current_turn}")
 
-                    # Check for check
-                    self._check_for_check()
+                    # Check for pawn promotion
+                    is_pawn = isinstance(self.selected_piece_object, Pawn)
+                    is_promotion_rank_white = (self.selected_piece_object.color == self.game.WHITE and \
+                                               row == self.game.BOARD_SIZE - 1)
+                    is_promotion_rank_black = (self.selected_piece_object.color == self.game.BLACK and \
+                                               row == 0)
+
+                    if is_pawn and (is_promotion_rank_white or is_promotion_rank_black):
+                        print(f"Pawn promotion for {self.selected_piece_object.color} at ({row}, {col})")
+                        self.game.promoting_pawn = self.selected_piece_object
+                        self.game.game_state = self.game.c.PAWN_PROMOTION
+                        self.selected_piece_object = None # Move complete, awaiting promotion choice
+                        self.possible_moves_coords = []
+                        return # Skip turn switch and check for now
+                    else:
+                        # Switch turn
+                        self.game.current_turn = self.game.BLACK if self.game.current_turn == self.game.WHITE else self.game.WHITE
+                        print(f"Turn: {self.game.current_turn}")
+                        # Check for check
+                        self._check_for_check()
+
+                    # Deselect piece (if not promoting)
+                    self.selected_piece_object = None
+                    self.possible_moves_coords = []
                 else:
                     print(f"Invalid move for {self.selected_piece_object.piece_type} to ({row}, {col})")
-                
-                # Deselect piece whether move was valid or not (for simplicity here)
-                self.selected_piece_object = None
-                self.possible_moves_coords = [] # Clear possible moves
-                # You might want to visually deselect (e.g., remove highlight)
+                    self.selected_piece_object = None # Deselect on invalid move too
+                    self.possible_moves_coords = []
 
             elif clicked_piece_object:
                 # No piece selected, and clicked on a piece: select it

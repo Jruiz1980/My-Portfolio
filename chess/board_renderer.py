@@ -76,3 +76,14 @@ class BoardRenderer:
             center_x = self.MARGIN + col * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
             center_y = self.MARGIN + row * self.SQUARE_SIZE + self.SQUARE_SIZE // 2
             arcade.draw_circle_filled(center_x, center_y, self.SQUARE_SIZE * 0.2, c.HIGHLIGHT_YELLOW_TRANSPARENT)
+
+    def draw_selected_square_highlight(self, coord: tuple[int, int]):
+        """Draws a highlight on the selected piece's square."""
+        if not coord:
+            return
+        row, col = coord
+        left = col * self.SQUARE_SIZE + self.MARGIN
+        right = (col + 1) * self.SQUARE_SIZE + self.MARGIN
+        bottom = row * self.SQUARE_SIZE + self.MARGIN
+        top = (row + 1) * self.SQUARE_SIZE + self.MARGIN
+        arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, c.SELECTED_SQUARE_HIGHLIGHT_COLOR)
