@@ -11,6 +11,13 @@ def get_piece_at_square(target_row: int, target_col: int, all_pieces: list[Piece
             return piece
     return None
 
+def find_king(player_color: str, all_pieces: list[Piece]) -> Piece | None:
+    """Finds the king of the specified color."""
+    for piece in all_pieces:
+        if isinstance(piece, King) and piece.color == player_color:
+            return piece
+    return None # Should not happen in a normal game
+
 def is_move_valid(piece: Piece, new_row: int, new_col: int, all_pieces: list[Piece], board_size: int) -> bool:
     """
     Checks if a move is valid for a given piece.
@@ -41,44 +48,123 @@ def is_move_valid(piece: Piece, new_row: int, new_col: int, all_pieces: list[Pie
             if piece.color == WHITE and piece.row == start_row_white and new_row == piece.row + 2 * direction:
                 # Check if path is clear for white pawn's two-square move
                 if not get_piece_at_square(piece.row + direction, new_col, all_pieces) and \
-                   not target_piece: # Target square must also be empty
+                not target_piece: # Target square must also be empty
                     return True
             elif piece.color == BLACK and piece.row == start_row_black and new_row == piece.row + 2 * direction:
                 # Check if path is clear for black pawn's two-square move
                 if not get_piece_at_square(piece.row + direction, new_col, all_pieces) and \
-                   not target_piece: # Target square must also be empty
+                not target_piece: # Target square must also be empty
                     return True
 
         # TODO: Add logic for diagonal captures
         # Example: if abs(new_col - piece.col) == 1 and new_row == piece.row + direction:
         #             if target_piece and target_piece.color != piece.color: return True
+        if abs(new_col - piece.col) == 1 and new_row == piece.row + direction: # Moving one step diagonally forward
+            if target_piece and target_piece.color != piece.color: # Must be an opponent's piece on the target square
+                return True
+            
     elif isinstance(piece, Rook):
-        # Basic rook move: horizontal or vertical (simplistic, no obstruction check yet)
         if piece.row == new_row or piece.col == new_col:
-            # TODO: Add obstruction check (no pieces between start and end)
-            return True
+            # Check for obstructions
+            if piece.row == new_row: # Horizontal move
+                step = 1 if new_col > piece.col else -1
+                for c_col in range(int(piece.col + step), int(new_col), int(step)):
+                    if get_piece_at_square(piece.row, c_col, all_pieces):
+                        return False # Path blocked
+            else: # Vertical move
+                step = 1 if new_row > piece.row else -1
+                for r_row in range(int(piece.row + step), int(new_row), int(step)):
+                    if get_piece_at_square(r_row, piece.col, all_pieces):
+                        return False # Path blocked
+            return True # Path is clear or it's a capture on the target square
+
     elif isinstance(piece, Knight):
+        # Knight can jump over pieces, so no obstruction check needed for its path.
+        # The initial check for same-color piece on target square is sufficient.
         row_diff = abs(new_row - piece.row)
         col_diff = abs(new_col - piece.col)
         if (row_diff == 2 and col_diff == 1) or \
         (row_diff == 1 and col_diff == 2):
             return True
+
     elif isinstance(piece, Bishop):
-        # Basic bishop move: diagonal (simplistic, no obstruction check yet)
         if abs(new_row - piece.row) == abs(new_col - piece.col):
-            # TODO: Add obstruction check
-            return True
+            # Check for obstructions along the diagonal
+            row_step = 1 if new_row > piece.row else -1
+            col_step = 1 if new_col > piece.col else -1
+            current_row, current_col = piece.row + row_step, piece.col + col_step
+            while int(current_row) != int(new_row): # or current_col != new_col
+                if get_piece_at_square(current_row, current_col, all_pieces):
+                    return False # Path blocked
+                current_row += row_step
+                current_col += col_step
+            return True # Path is clear or it's a capture on the target square
+
     elif isinstance(piece, Queen):
-        # Basic queen move: horizontal, vertical, or diagonal (simplistic, no obstruction check yet)
-        if piece.row == new_row or piece.col == new_col or \
-            abs(new_row - piece.row) == abs(new_col - piece.col):
-            # TODO: Add obstruction check
+        if piece.row == new_row or piece.col == new_col: # Horizontal or Vertical (like Rook)
+            if piece.row == new_row: # Horizontal move
+                step = 1 if new_col > piece.col else -1
+                for c_col in range(int(piece.col + step), int(new_col), int(step)):
+                    if get_piece_at_square(piece.row, c_col, all_pieces):
+                        return False # Path blocked
+            else: # Vertical move
+                step = 1 if new_row > piece.row else -1
+                for r_row in range(int(piece.row + step), int(new_row), int(step)):
+                    if get_piece_at_square(r_row, piece.col, all_pieces):
+                        return False # Path blocked
             return True
+        elif abs(new_row - piece.row) == abs(new_col - piece.col): # Diagonal (like Bishop)
+            row_step = 1 if new_row > piece.row else -1
+            col_step = 1 if new_col > piece.col else -1
+            current_row, current_col = int(piece.row + row_step), int(piece.col + col_step)
+            while int(current_row) != int(new_row):
+                if get_piece_at_square(current_row, current_col, all_pieces):
+                    return False # Path blocked
+                current_row += row_step
+                current_col += col_step
+            return True
+
     elif isinstance(piece, King):
         # Basic king move: one square in any direction
+        # King moves only one square, so no intermediate path to check for obstruction.
+        # The initial check for same-color piece on target square is sufficient.
         row_diff = abs(new_row - piece.row)
         col_diff = abs(new_col - piece.col)
         if row_diff <= 1 and col_diff <= 1:
             return True
 
     return False # Default to invalid if no rule matches or for unhandled pieces
+
+def _is_square_attacked_by_pawn(pawn: Pawn, target_row: int, target_col: int) -> bool:
+    """Checks if a specific square is attacked by this pawn."""
+    direction = 1 if pawn.color == WHITE else -1
+    # A pawn attacks the squares one step diagonally forward from its current position.
+    if pawn.row + direction == target_row:
+        if pawn.col + 1 == target_col or pawn.col - 1 == target_col:
+            return True
+    return False
+
+def is_square_attacked(target_row: int, target_col: int, attacker_color: str, all_pieces: list[Piece], board_size: int) -> bool:
+    """
+    Checks if a square (target_row, target_col) is attacked by any piece of attacker_color.
+    """
+    for piece in all_pieces:
+        if piece.color == attacker_color:
+            if isinstance(piece, Pawn):
+                if _is_square_attacked_by_pawn(piece, target_row, target_col):
+                    return True
+            else:
+                # For other pieces, their standard move validity (ignoring if target is same color for attack check)
+                # is_move_valid already checks if piece can reach the square, including obstructions.
+                # The initial check in is_move_valid (target_piece.color == piece.color) handles not "attacking" through own piece.
+                if is_move_valid(piece, target_row, target_col, all_pieces, board_size):
+                    return True
+    return False
+
+def is_king_in_check(king_color: str, all_pieces: list[Piece], board_size: int) -> bool:
+    """Checks if the king of the specified color is currently in check."""
+    king = find_king(king_color, all_pieces)
+    if not king:
+        return False # Should not happen
+    opponent_color = BLACK if king_color == WHITE else WHITE
+    return is_square_attacked(king.row, king.col, opponent_color, all_pieces, board_size)

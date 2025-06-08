@@ -34,10 +34,16 @@ class MyGame(arcade.Window):
         # Game settings (can be updated by UI)
         self.player_color = self.WHITE # Default player color
         self.game_mode = "pvp" # Default game mode ("pvp" or "pvc")
+        self.current_turn = self.WHITE # White always starts
 
 
     def _setup_pieces(self):
         """Initializes and places all pieces on the board."""
+        # Clear existing pieces and sprites before setting up new ones
+        self.all_piece_objects.clear()
+        self.piece_sprites.clear()
+        self.current_turn = self.WHITE # Reset turn to white
+
         # White pieces
         for col in range(self.BOARD_SIZE):
             p = Pawn(self.WHITE, 1, col); self.all_piece_objects.append(p); self.piece_sprites.append(p.sprite)
@@ -102,6 +108,7 @@ class MyGame(arcade.Window):
                 self._setup_pieces() # Reset pieces
                 self.input_handler.selected_piece_object = None # Deselect any piece
                 self.input_handler.possible_moves_coords = []
+                # self.current_turn = self.WHITE # Already handled in _setup_pieces
                 self.game_state = c.SETUP # Go back to setup
             elif clicked_button_action == "white_color":
                 print("Selected White")
