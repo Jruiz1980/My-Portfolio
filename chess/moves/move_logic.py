@@ -27,13 +27,31 @@ def is_move_valid(piece: Piece, new_row: int, new_col: int, all_pieces: list[Pie
     # Add specific rules for each piece type
     if isinstance(piece, Pawn):
         # Basic pawn move: one step forward (simplistic, no capture/double step yet)
-        # White pawns move from row 1 towards 7 (increasing row index)
-        # Black pawns move from row 6 towards 0 (decreasing row index)
         direction = 1 if piece.color == WHITE else -1
-        if piece.col == new_col and new_row == piece.row + direction:
-            if not target_piece: # Can't move forward if square is occupied
+        start_row_white = 1
+        start_row_black = 6 # Assuming board_size 8, rows 0-7
+
+        # Standard one-square move
+        if new_col == piece.col and new_row == piece.row + direction:
+            if not target_piece:  # Can only move forward to an empty square
                 return True
-        # Add logic for initial two-square move and diagonal captures
+
+        # Initial two-square move
+        if piece.col == new_col: # Must be in the same column
+            if piece.color == WHITE and piece.row == start_row_white and new_row == piece.row + 2 * direction:
+                # Check if path is clear for white pawn's two-square move
+                if not get_piece_at_square(piece.row + direction, new_col, all_pieces) and \
+                   not target_piece: # Target square must also be empty
+                    return True
+            elif piece.color == BLACK and piece.row == start_row_black and new_row == piece.row + 2 * direction:
+                # Check if path is clear for black pawn's two-square move
+                if not get_piece_at_square(piece.row + direction, new_col, all_pieces) and \
+                   not target_piece: # Target square must also be empty
+                    return True
+
+        # TODO: Add logic for diagonal captures
+        # Example: if abs(new_col - piece.col) == 1 and new_row == piece.row + direction:
+        #             if target_piece and target_piece.color != piece.color: return True
     elif isinstance(piece, Rook):
         # Basic rook move: horizontal or vertical (simplistic, no obstruction check yet)
         if piece.row == new_row or piece.col == new_col:
