@@ -4,6 +4,7 @@ Handles mouse input for the chess game.
 import arcade
 import copy # For deepcopying board state during simulation
 from components.pieces import Piece, Pawn # For type hinting
+from components.pieces import Queen as PromotedQueen # For AI promotion
 from moves import move_logic # Corrected: import move_logic from parent directory
 
 class InputHandler:
@@ -43,107 +44,7 @@ class InputHandler:
                 # A move is valid if it's in the pre-calculated possible_moves_coords,
                 # which already ensures the move doesn't leave the current player's king in check.
                 if (row, col) in self.possible_moves_coords:
-                    
-                    # --- For Algebraic Notation: Store info BEFORE the move ---
-                    original_piece_info = {
-                        "row": int(self.selected_piece_object.row), # Ensure int
-                        "col": int(self.selected_piece_object.col), # Ensure int
-                        "type": self.selected_piece_object.piece_type,
-                        "color": self.selected_piece_object.color
-                    }
-                    # Create a snapshot of the board *before* the move for disambiguation logic
-                    all_pieces_before_current_move = [p.__class__(p.color, p.row, p.col) for p in self.game.all_piece_objects]
-                    
-                    # Check if the move is a capture
-                    captured_piece = self.get_piece_object_at_coords(row, col) # Piece at destination before move
-                    if captured_piece and captured_piece.color != self.selected_piece_object.color:
-                        # Remove captured piece
-                        self.game.all_piece_objects.remove(captured_piece)
-                        self.game.piece_sprites.remove(captured_piece.sprite)
-                        print(f"Captured {captured_piece.piece_type} at ({row}, {col})")
-                    was_capture_for_notation = captured_piece is not None
-
-                    # Update piece's board position and sprite
-                    self.selected_piece_object.row = row
-                    self.selected_piece_object.col = col
-                    self.selected_piece_object.update_sprite_position()
-                    print(f"Moved {self.selected_piece_object.piece_type} to ({row}, {col})")
-                    
-
-                    # Check for pawn promotion
-                    is_pawn = isinstance(self.selected_piece_object, Pawn)
-                    is_promotion_rank_white = (self.selected_piece_object.color == self.game.WHITE and \
-                                            row == self.game.BOARD_SIZE - 1)
-                    is_promotion_rank_black = (self.selected_piece_object.color == self.game.BLACK and \
-                                            row == 0)
-
-                    if is_pawn and (is_promotion_rank_white or is_promotion_rank_black):
-                        print(f"Pawn promotion for {self.selected_piece_object.color} at ({row}, {col})")
-                        self.game.promoting_pawn = self.selected_piece_object
-                        # Algebraic notation for promotion will be handled after choice.
-                        # For now, the move itself is to the promotion square.
-                        # We can print a partial notation here or wait for full after promotion.
-                        
-                        # Determine check/checkmate status *caused by pawn reaching promotion square*
-                        opponent_color_promo = self.game.BLACK if original_piece_info["color"] == self.game.WHITE else self.game.WHITE
-                        check_caused_by_promo_move = move_logic.is_king_in_check(opponent_color_promo, self.game.all_piece_objects, self.game.BOARD_SIZE)
-                        checkmate_caused_by_promo_move = False
-                        if check_caused_by_promo_move:
-                            if not self._has_legal_moves(opponent_color_promo):
-                                checkmate_caused_by_promo_move = True
-
-                        # Print notation for pawn moving to promotion square (promotion piece itself is not yet chosen)
-                        promo_move_alg = move_logic.format_move_to_algebraic(
-                            all_pieces_before_current_move, self.game.BOARD_SIZE,
-                            original_piece_info["row"], original_piece_info["col"], original_piece_info["type"], original_piece_info["color"],
-                            row, col, was_capture_for_notation,
-                            None, # No promotion piece char yet
-                            check_caused_by_promo_move, checkmate_caused_by_promo_move
-                        )
-                        # print(f"Move to promotion square: {promo_move_alg}") # e.g., "e8" or "dxc8"
-                        self.game.move_history.append(promo_move_alg) # Add base move to history
-
-                        self.game.game_state = self.game.c.PAWN_PROMOTION
-                        self.selected_piece_object = None # Move complete, awaiting promotion choice
-                        self.possible_moves_coords = []
-                        return # Skip turn switch and check for now
-                    else:
-                        # Switch turn
-                        # --- For Algebraic Notation: Determine check/mate status caused by THIS move ---
-                        opponent_color = self.game.BLACK if original_piece_info["color"] == self.game.WHITE else self.game.WHITE
-                        check_caused_by_move = move_logic.is_king_in_check(opponent_color, self.game.all_piece_objects, self.game.BOARD_SIZE)
-                        checkmate_caused_by_move = False
-                        if check_caused_by_move:
-                            if not self._has_legal_moves(opponent_color): # Checks opponent based on current board
-                                checkmate_caused_by_move = True
-                            # else: # It's a check, but not mate
-                                # self.game.show_check_message_timer = self.game.c.CHECK_MESSAGE_DURATION
-                                # This will be handled by _check_for_check after turn switch
-
-                        alg_notation = move_logic.format_move_to_algebraic(
-                            all_pieces_before_current_move, self.game.BOARD_SIZE,
-                            original_piece_info["row"], original_piece_info["col"], original_piece_info["type"], original_piece_info["color"],
-                            row, col, # dest_row, dest_col
-                            was_capture_for_notation,
-                            None, # promoted_to_piece_type_char (None for non-promotion moves)
-                            check_caused_by_move,
-                            checkmate_caused_by_move
-                        )
-                        print(f"Move: {alg_notation}")
-                        self.game.move_history.append(alg_notation)
-
-                        # Switch turn (if not promoting)
-                        self.game.current_turn = opponent_color
-                        print(f"Turn: {self.game.current_turn}")
-
-                        # Deselect piece before checking for mate for the new turn
-                        self.selected_piece_object = None
-                        self.possible_moves_coords = []
-                        self._check_for_check() # This will now also check for mate/stalemate for the player whose turn it became
-                        
-                        if self.game.game_state == self.game.c.GAME_OVER:
-                            return
-
+                    self.execute_move(self.selected_piece_object, row, col)
                 else:
                     print(f"Invalid move for {self.selected_piece_object.piece_type} to ({row}, {col})")
                     self.selected_piece_object = None # Deselect on invalid move too
@@ -163,6 +64,106 @@ class InputHandler:
                 self.selected_piece_object = None # Ensure deselection
                 self.possible_moves_coords = [] # Clear possible moves
                 print("Clicked on an empty square.")
+
+    def execute_move(self, piece_to_move: Piece, dest_row: int, dest_col: int, is_ai_move: bool = False):
+        """Executes a given move, updates game state, and handles turn changes."""
+        
+        # --- For Algebraic Notation: Store info BEFORE the move ---
+        original_piece_info = {
+            "row": int(piece_to_move.row),
+            "col": int(piece_to_move.col),
+            "type": piece_to_move.piece_type,
+            "color": piece_to_move.color
+        }
+        all_pieces_before_current_move = [p.__class__(p.color, p.row, p.col) for p in self.game.all_piece_objects]
+
+        # Check if the move is a capture
+        captured_piece = self.get_piece_object_at_coords(dest_row, dest_col)
+        if captured_piece and captured_piece.color != piece_to_move.color:
+            self.game.all_piece_objects.remove(captured_piece)
+            self.game.piece_sprites.remove(captured_piece.sprite)
+            print(f"Captured {captured_piece.piece_type} at ({dest_row}, {dest_col}) by {piece_to_move.piece_type}")
+        was_capture_for_notation = captured_piece is not None
+
+        # Update piece's board position and sprite
+        piece_to_move.row = dest_row
+        piece_to_move.col = dest_col
+        piece_to_move.update_sprite_position()
+        print(f"Moved {piece_to_move.piece_type} to ({dest_row}, {dest_col})")
+
+        # Check for pawn promotion
+        promoted_char_for_alg = None
+        is_pawn = isinstance(piece_to_move, Pawn)
+        is_promotion_rank_white = (piece_to_move.color == self.game.WHITE and dest_row == self.game.BOARD_SIZE - 1)
+        is_promotion_rank_black = (piece_to_move.color == self.game.BLACK and dest_row == 0)
+
+        if is_pawn and (is_promotion_rank_white or is_promotion_rank_black):
+            if is_ai_move:
+                print(f"AI Pawn promotion for {piece_to_move.color} at ({dest_row}, {dest_col}) to Queen")
+                # AI always promotes to Queen
+                if piece_to_move in self.game.all_piece_objects: self.game.all_piece_objects.remove(piece_to_move)
+                if piece_to_move.sprite in self.game.piece_sprites: self.game.piece_sprites.remove(piece_to_move.sprite)
+                
+                new_queen = PromotedQueen(piece_to_move.color, dest_row, dest_col)
+                self.game.all_piece_objects.append(new_queen)
+                self.game.piece_sprites.append(new_queen.sprite)
+                promoted_char_for_alg = move_logic.get_promoted_piece_char(new_queen.piece_type)
+            else: # Human promotion
+                print(f"Pawn promotion for {piece_to_move.color} at ({dest_row}, {dest_col})")
+                self.game.promoting_pawn = piece_to_move
+                # Notation for pawn moving to promotion square (actual promotion piece chosen later by human)
+                opponent_color_promo = self.game.BLACK if original_piece_info["color"] == self.game.WHITE else self.game.WHITE
+                check_caused_by_promo_move = move_logic.is_king_in_check(opponent_color_promo, self.game.all_piece_objects, self.game.BOARD_SIZE)
+                checkmate_caused_by_promo_move = False # Will be re-evaluated after human choice
+                if check_caused_by_promo_move and not self._has_legal_moves(opponent_color_promo):
+                    checkmate_caused_by_promo_move = True
+
+                promo_move_alg = move_logic.format_move_to_algebraic(
+                    all_pieces_before_current_move, self.game.BOARD_SIZE,
+                    original_piece_info["row"], original_piece_info["col"], original_piece_info["type"], original_piece_info["color"],
+                    dest_row, dest_col, was_capture_for_notation,
+                    None, # No specific promotion char yet for human
+                    check_caused_by_promo_move, checkmate_caused_by_promo_move
+                )
+                self.game.move_history.append(promo_move_alg)
+                self.game.game_state = self.game.c.PAWN_PROMOTION
+                self.selected_piece_object = None
+                self.possible_moves_coords = []
+                return # Human needs to choose promotion
+
+        # --- For Algebraic Notation: Determine check/mate status caused by THIS move ---
+        opponent_color = self.game.BLACK if original_piece_info["color"] == self.game.WHITE else self.game.WHITE
+        check_caused_by_move = move_logic.is_king_in_check(opponent_color, self.game.all_piece_objects, self.game.BOARD_SIZE)
+        checkmate_caused_by_move = False
+        if check_caused_by_move:
+            if not self._has_legal_moves(opponent_color):
+                checkmate_caused_by_move = True
+
+        alg_notation = move_logic.format_move_to_algebraic(
+            all_pieces_before_current_move, self.game.BOARD_SIZE,
+            original_piece_info["row"], original_piece_info["col"], original_piece_info["type"], original_piece_info["color"],
+            dest_row, dest_col,
+            was_capture_for_notation,
+            promoted_char_for_alg, # Will be None if not AI promotion or if human promo pending
+            check_caused_by_move,
+            checkmate_caused_by_move
+        )
+        # Only add to history if it's not a human promotion move that's already added
+        if not (is_pawn and (is_promotion_rank_white or is_promotion_rank_black) and not is_ai_move):
+            print(f"Move: {alg_notation}")
+            self.game.move_history.append(alg_notation)
+
+        # Switch turn
+        self.game.current_turn = opponent_color
+        print(f"Turn: {self.game.current_turn}")
+
+        # Deselect piece
+        self.selected_piece_object = None
+        self.possible_moves_coords = []
+        self._check_for_check() # Check for mate/stalemate for the player whose turn it now is
+        
+        if self.game.game_state == self.game.c.GAME_OVER:
+            return
 
     def _calculate_possible_moves(self):
         """Calculates and stores valid moves for the selected piece."""
@@ -223,6 +224,39 @@ class InputHandler:
                             self.game.BOARD_SIZE):
                             self.possible_moves_coords.append((r, c))
     
+    def get_all_legal_moves_for_player(self, player_color: str) -> list[tuple[Piece, tuple[int, int]]]:
+        """
+        Calculates all legal moves for a given player.
+        Returns a list of (piece_object, (dest_row, dest_col)) tuples.
+        """
+        legal_moves = []
+        for piece in self.game.all_piece_objects:
+            if piece.color == player_color:
+                for r_target in range(self.game.BOARD_SIZE):
+                    for c_target in range(self.game.BOARD_SIZE):
+                        if move_logic.is_move_valid(piece, r_target, c_target,
+                                                    self.game.all_piece_objects, self.game.BOARD_SIZE):
+                            # Simulate move to check for self-check
+                            sim_all_pieces = [p.__class__(p.color, p.row, p.col) for p in self.game.all_piece_objects]
+                            sim_moving_piece = None
+                            sim_piece_at_target = None
+                            for p_sim in sim_all_pieces:
+                                if p_sim.row == piece.row and p_sim.col == piece.col and p_sim.piece_type == piece.piece_type:
+                                    sim_moving_piece = p_sim
+                                if p_sim.row == r_target and p_sim.col == c_target:
+                                    sim_piece_at_target = p_sim
+                            
+                            if not sim_moving_piece: continue
+
+                            if sim_piece_at_target and sim_piece_at_target.color != sim_moving_piece.color:
+                                sim_all_pieces.remove(sim_piece_at_target)
+                            sim_moving_piece.row = r_target
+                            sim_moving_piece.col = c_target
+
+                            if not move_logic.is_king_in_check(player_color, sim_all_pieces, self.game.BOARD_SIZE):
+                                legal_moves.append((piece, (r_target, c_target)))
+        return legal_moves
+
     def _has_legal_moves(self, player_color: str) -> bool:
         """
         Checks if the given player has any legal moves on the current game board state.

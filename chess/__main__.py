@@ -5,6 +5,7 @@ from board_renderer import BoardRenderer # Import BoardRenderer
 from game_ui import GameUI # Import GameUI
 import components.constants as c # Import constants
 from moves import move_logic # For algebraic notation after promotion
+from moves.ai_player import AIPlayer # Import the AIPlayer
 
 class MyGame(arcade.Window):
     def __init__(self):
@@ -38,6 +39,8 @@ class MyGame(arcade.Window):
         self.game_over_message: str | None = None # To store "Checkmate" or "Stalemate" message
         self.move_history: list[str] = [] # To store algebraic notation of moves
         self.show_check_message_timer: float = 0.0 # Timer for "CHECK!" display
+        self.ai_player: AIPlayer | None = None
+        self.ai_color: str | None = None
 
         self._setup_pieces()
 
@@ -55,6 +58,8 @@ class MyGame(arcade.Window):
         self.game_over_message = None # Clear game over message
         self.move_history.clear() # Clear move history
         self.show_check_message_timer = 0.0 # Reset check message timer
+        self.ai_player = None # Reset AI player instance
+        self.ai_color = None  # Reset AI color
 
         # White pieces
         for col in range(self.BOARD_SIZE):
@@ -149,6 +154,13 @@ class MyGame(arcade.Window):
             if self.game_state == c.SETUP and clicked_button_action == "start":
                 print(f"Start button clicked! Player: {self.player_color}, Mode: {self.game_mode}")
                 self.game_state = c.PLAYING
+                if self.game_mode == "pvc":
+                    if self.player_color == self.WHITE:
+                        self.ai_color = self.BLACK
+                    else:
+                        self.ai_color = self.WHITE
+                    self.ai_player = AIPlayer(self, self.ai_color)
+                    print(f"AI will play as {self.ai_color}")
             elif clicked_button_action == "new_game": # Goes back to SETUP screen
                 print("New Game button clicked!")
                 self._setup_pieces() # Reset pieces
@@ -254,8 +266,22 @@ class MyGame(arcade.Window):
             self.input_handler.on_mouse_press(x, y, button, modifiers)
 
     def update(self, delta_time: float):
+        """ Game logic updated every frame """
         if self.show_check_message_timer > 0:
             self.show_check_message_timer -= delta_time
+            if self.show_check_message_timer < 0:
+                self.show_check_message_timer = 0
+
+        if self.game_mode == "pvc" and self.game_state == c.PLAYING and \
+            self.current_turn == self.ai_color and self.ai_player and self.show_check_message_timer <= 0:
+            print(f"DEBUG: AI ({self.ai_color}) turn. Attempting to choose move.")
+            ai_move_choice = self.ai_player.choose_move()
+            if ai_move_choice:
+                print(f"DEBUG: AI chose move: {ai_move_choice[0].piece_type} to {ai_move_choice[1]}")
+                piece_to_move, (dest_row, dest_col) = ai_move_choice
+                self.input_handler.execute_move(piece_to_move, dest_row, dest_col, is_ai_move=True)
+            else:
+                print(f"DEBUG: AI ({self.ai_color}) did not choose a move (choose_move returned None).")
 
 def main():
     game = MyGame()
