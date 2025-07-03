@@ -2,5 +2,21 @@
     "python.analysis.extraPaths": [
         "./chess/class",
         "./chess"
-    ]
+    ],
+    "java.project.sourcePaths": [
+        "Schedule"
+    ],
+    "terminal.integrated.defaultProfile.windows": "Windows PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "Command Prompt": {
+            "path": "C:\\Windows\\System32\\cmd.exe"
+        },
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Git Bash": {
+            "source": "Git Bash"
+        }
+    }
 }
