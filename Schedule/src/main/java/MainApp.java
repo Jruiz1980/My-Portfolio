@@ -4,7 +4,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-public class TaskSchedule extends Application {
+public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
