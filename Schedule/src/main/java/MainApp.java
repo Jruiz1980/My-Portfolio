@@ -1,26 +1,25 @@
+package com.example.taskschedule;
+
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-public class MainApp extends Application {
+public class TaskSchedule extends Application {
 
     @Override
-    public void start(Stage primaryStage) {
-        // Create a label
-        Label label = new Label("Hello! This is your new task schedule.");
+    public void start(Stage primaryStage) throws IOException {
+        // Load the FXML file for the main window.
+        // Note the path starts from the 'resources' folder.
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("view/MainWindow.fxml"));
+        Parent root = loader.load();
 
-        // Create a layout pane and add the label to it
-        StackPane root = new StackPane();
-        root.getChildren().add(label);
-
-        // Create a scene and set it on the stage
-        Scene scene = new Scene(root, 400, 300);
         primaryStage.setTitle("My Task Schedule");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
     }
+
     public static void main(String[] args) {
         launch(args);
     }
