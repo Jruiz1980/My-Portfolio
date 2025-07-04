@@ -7,7 +7,7 @@ import javafx.scene.control.ListView;
 
 //import java.time.LocalDate;
 
-public class mainWindowController {
+public class MainWindowController {
 
     @FXML
     private ListView<String> taskListView;

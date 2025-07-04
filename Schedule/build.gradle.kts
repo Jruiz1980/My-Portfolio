@@ -17,7 +17,7 @@ javafx {
 
 application {
     // Define the main class for the application.
-    mainClass.set("TaskSchedule")
+    mainClass.set("com.example.taskschedule.MainApp")
 }
 
 dependencies {
