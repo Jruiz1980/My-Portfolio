@@ -1,14 +1,13 @@
 package com.example.taskschedule.view;
 
-import com.example.taskschedule.model.Task;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 
-import java.time.LocalDate;
+//import java.time.LocalDate;
 
-public class MainWindowController {
+public class mainWindowController {
 
     @FXML
     private ListView<String> taskListView;
