@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.example.taskschedule.view.TaskDialogController"
+          hgap="10" vgap="15" style="-fx-padding: 20;">
+
+    <Label text="Description:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <TextField fx:id="descriptionField" GridPane.rowIndex="0" GridPane.columnIndex="1" HBox.hgrow="ALWAYS"/>
+
+    <Label text="Recurring:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <CheckBox fx:id="recurringCheckBox" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+    <!-- This VBox will contain all controls for non-recurring tasks -->
+    <VBox fx:id="simpleTaskPane" spacing="15" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
+        <GridPane hgap="10" vgap="15">
+            <Label text="Due Date:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <DatePicker fx:id="datePicker" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+            <Label text="All Day:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <CheckBox fx:id="allDayCheckBox" selected="true" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <!-- This container for time controls will be shown/hidden -->
+            <VBox fx:id="timeFieldsPane" spacing="15" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
+                <GridPane hgap="10" vgap="15">
+                    <Label text="Start Time:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <HBox spacing="5" alignment="CENTER_LEFT" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                        <Spinner fx:id="startHourSpinner" prefWidth="65"/>
+                        <Label text=":"><padding><Insets left="2" right="2"/></padding></Label>
+                        <Spinner fx:id="startMinuteSpinner" prefWidth="65"/>
+                    </HBox>
+
+                    <Label text="End Time:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <HBox spacing="5" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                        <Spinner fx:id="endHourSpinner" prefWidth="65"/>
+                        <Label text=":"><padding><Insets left="2" right="2"/></padding></Label>
+                        <Spinner fx:id="endMinuteSpinner" prefWidth="65"/>
+                    </HBox>
+                </GridPane>
+            </VBox>
+        </GridPane>
+    </VBox>
+
+    <!-- This VBox will contain all controls for recurring tasks -->
+    <VBox fx:id="recurringTaskPane" visible="false" spacing="15" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
+        <GridPane hgap="10" vgap="15">
+            <Label text="Day of Week:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="dayOfWeekComboBox" maxWidth="Infinity" promptText="Select a day" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        </GridPane>
+    </VBox>
+
+</GridPane>
