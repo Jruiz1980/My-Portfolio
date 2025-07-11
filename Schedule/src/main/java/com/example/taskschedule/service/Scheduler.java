@@ -1,11 +1,11 @@
 package com.example.taskschedule.service;
 
-import com.example.taskschedule.model.SchedulableItem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import com.example.taskschedule.model.SchedulableItem;
 
 /**
  * Manages a collection of SchedulableItem.
