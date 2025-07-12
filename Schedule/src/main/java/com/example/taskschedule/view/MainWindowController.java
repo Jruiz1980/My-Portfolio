@@ -44,7 +44,7 @@ public class MainWindowController {
     @FXML
     public void initialize() {
         myCalendar = new Calendar<>("My Tasks");
-        myCalendar.setStyle(Calendar.Style.STYLE1);
+        myCalendar.setStyle(Calendar.Style.STYLE4);
 
         CalendarSource myCalendarSource = new CalendarSource("Main");
         myCalendarSource.getCalendars().add(myCalendar);
@@ -304,6 +304,7 @@ public class MainWindowController {
         setIconForDialog(alert);
         alert.showAndWait();
     }
+
 
     private void setIconForDialog(Dialog<?> dialog) {
         Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();

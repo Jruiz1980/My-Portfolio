@@ -7,6 +7,7 @@ import com.example.taskschedule.util.LocalDateAdapter;
 import com.example.taskschedule.util.RuntimeTypeAdapterFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,24 +51,30 @@ public class PersistenceService {
     }
 
 
+    // In PersistenceService.java
+
     public List<SchedulableItem> loadTasks() {
         try (FileReader reader = new FileReader(SAVE_FILE_PATH)) {
             Type type = new TypeToken<ArrayList<SchedulableItem>>() {}.getType();
             List<SchedulableItem> loadedItems = gson.fromJson(reader, type);
 
-            // --- SOLUTION: Add a null check for robustness ---
-            // If the file was empty or contained "null", gson.fromJson returns null.
-            // We should return an empty list instead to prevent NullPointerExceptions.
             if (loadedItems == null) {
+                logger.info("tasks.json file is empty. Starting with a new schedule.");
                 return new ArrayList<>();
             }
 
             logger.info("Successfully loaded {} tasks from {}", loadedItems.size(), SAVE_FILE_PATH);
             return loadedItems;
 
+            // --- SUGGESTION: Add this catch block ---
+            // This handles cases where the file exists but is empty, corrupted, or in an old format.
+        } catch (JsonParseException e) {
+            logger.error("Failed to parse tasks.json. The file might be corrupted or in an old format. Starting with a new schedule.", e);
+            return new ArrayList<>(); // Return an empty list to prevent a crash
         } catch (IOException e) {
-            logger.warn("No save file found or failed to read file. Starting with an empty schedule.");
-            return new ArrayList<>(); // This is correct: return an empty list if the file doesn't exist.
+            // This handles the case where the file doesn't exist at all.
+            logger.warn("No save file found at {}. Starting with an empty schedule.", SAVE_FILE_PATH);
+            return new ArrayList<>();
         }
     }
 }
