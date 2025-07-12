@@ -6,7 +6,7 @@ The software provides a fully interactive calendar where users can manage their 
 
 My primary purpose for creating this application was to demonstrate a solid understanding of Java syntax and object-oriented design patterns, particularly polymorphism. By creating a class hierarchy for different types of schedulable items (`SimpleTask`, `RecurringTask`), the application showcases how a single interface (`SchedulableItem`) can be used to manage different objects in a uniform way. Additionally, this project was an opportunity to gain hands-on experience with the JavaFX framework and third-party libraries like Gson.
 
-[Software Demo Video]()
+[Software Demo Video](https://youtu.be/no5XNuegqKQ)
 
 # Development Environment
 
