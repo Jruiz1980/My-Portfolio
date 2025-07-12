@@ -28,8 +28,6 @@ The core programming language is **Java**. The application is built on the **Jav
 
 # Future Work
 
-{Make a list of things that you need to fix, improve, and add in the future.}
-
 * **User Authentication:** Implement a secure login system to allow different users to manage their own private schedules.
 * **Notification System:** Integrate with email (JavaMail) and/or messaging services (like WhatsApp via Twilio) to send users notifications for tasks due on the current day.
 * **Database Persistence:** Replace the local JSON file storage with a more robust embedded database solution, such as SQLite or H2, to improve data integrity and query performance.
